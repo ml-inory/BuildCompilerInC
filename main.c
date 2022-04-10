@@ -131,12 +131,88 @@ void EmitLn(const char* s)
     printf("\n");
 }
 
+// Check If an Addop
+BOOL IsAddop(char c)
+{
+    if (c == '+' || c == '-')
+        return TRUE;
+    else
+        return FALSE;
+}
+
+// Check If a Mulop
+BOOL IsMulop(char c)
+{
+    if (c == '*' || c == '/')
+        return TRUE;
+    else
+        return FALSE;
+}
+
+// Expression forward declaration
+void Expression();
+
+// Parse and Translate a Math Factor
+void Factor()
+{
+    if (Look == '(')
+    {
+        Match('(');
+        Expression();
+        Match(')');
+    }
+    else
+    {
+        char exp[MAX_SIZE_OF_EXP];
+        snprintf(exp, MAX_SIZE_OF_EXP, "mov edx, %c", GetNum());
+        EmitLn(exp);
+    }
+}
+
+// Recognize and Translate a Multiply
+void Multiply()
+{
+    Match('*');
+    Factor();
+    EmitLn("pop ecx");
+    EmitLn("mul edx, ecx");
+}
+
+// Recognize and Translate a Divide
+void Divide()
+{
+    Match('/');
+    Factor();
+    EmitLn("pop ecx");
+    EmitLn("div ecx, edx");
+}
+
 // Parse and Translate a Math Term
 void Term()
 {
-    char exp[MAX_SIZE_OF_EXP];
-    snprintf(exp, MAX_SIZE_OF_EXP, "mov edx, %c", GetNum());
-    EmitLn(exp);
+    Factor();
+    while (IsMulop(Look))
+    {
+        EmitLn("push edx");
+        switch (Look)
+        {
+        case '*':
+        {
+            Multiply();
+            break;
+        }
+        case '/':
+        {
+            Divide();
+            break;
+        }
+        default:
+        {
+            Expected("Mulop");
+            break;
+        }
+        }
+    }
 }
 
 // Recognize and Translate an Add
@@ -144,6 +220,7 @@ void Add()
 {
     Match('+');
     Term();
+    EmitLn("pop ecx");
     EmitLn("add edx, ecx");
 }
 
@@ -152,6 +229,7 @@ void Subtract()
 {
     Match('-');
     Term();
+    EmitLn("pop ecx");
     EmitLn("sub edx, ecx");
     EmitLn("neg edx");
 }
@@ -159,10 +237,13 @@ void Subtract()
 // Parse and Translate a Math Expression
 void Expression()
 {
-    Term();
-    while (Look == '+' || Look == '-')
+    if (IsAddop(Look))
+        EmitLn("mov edx, 0");
+    else
+        Term();
+    while (IsAddop(Look))
     {
-        EmitLn("mov ecx, edx");
+        EmitLn("push edx");
         switch (Look)
         {
         case '+':

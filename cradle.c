@@ -282,6 +282,24 @@ void EmitLn(const char* s)
     printf("\n");
 }
 
+// Check If an Addop
+BOOL IsAddop(char c)
+{
+    if (c == '+' || c == '-')
+        return TRUE;
+    else
+        return FALSE;
+}
+
+// Check If a Mulop
+BOOL IsMulop(char c)
+{
+    if (c == '*' || c == '/')
+        return TRUE;
+    else
+        return FALSE;
+}
+
 // Initialize
 void Init()
 {
