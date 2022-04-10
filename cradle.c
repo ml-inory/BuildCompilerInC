@@ -192,7 +192,7 @@ void Abort(const char* s)
 void Expected(const char* s)
 {
     char s_e[MAX_SIZE_OF_ERROR_STRING];
-    snprintf(s_e, MAX_SIZE_OF_ERROR_STRING, "%s Expected", s);
+    snprintf(s_e, MAX_SIZE_OF_ERROR_STRING, "%s Expected\n", s);
     Abort(s_e);
 }
 
@@ -246,25 +246,27 @@ char Upcase(char c)
 // Get an Identifier
 char GetName()
 {
-    while (FALSE == IsAlpha(Look))
+    if (FALSE == IsAlpha(Look))
     {
         Expected("Name");
-        GetChar();
     }
-        
-    return Upcase(Look);
+    
+    char ret = Upcase(Look);
+    GetChar();
+    return ret;
 }
 
 // Get a Number
 char GetNum()
 {
-    while (FALSE == IsDigit(Look))
+    if (FALSE == IsDigit(Look))
     {
         Expected("Integer");
-        GetChar();
     }
 
-    return Look;
+    char ret = Look;
+    GetChar();
+    return ret;
 }
 
 // Output a String with Tab

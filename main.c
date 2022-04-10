@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define MAX_SIZE_OF_ERROR_STRING    (128)
+#define MAX_SIZE_OF_EXP             (256)
 
 // boolean type
 typedef enum _BOOL
@@ -40,7 +41,7 @@ void Abort(const char* s)
 void Expected(const char* s)
 {
     char s_e[MAX_SIZE_OF_ERROR_STRING];
-    snprintf(s_e, MAX_SIZE_OF_ERROR_STRING, "%s Expected", s);
+    snprintf(s_e, MAX_SIZE_OF_ERROR_STRING, "%s Expected\n", s);
     Abort(s_e);
 }
 
@@ -94,25 +95,27 @@ char Upcase(char c)
 // Get an Identifier
 char GetName()
 {
-    while (FALSE == IsAlpha(Look))
+    if (FALSE == IsAlpha(Look))
     {
         Expected("Name");
-        GetChar();
     }
-        
-    return Upcase(Look);
+    
+    char ret = Upcase(Look);
+    GetChar();
+    return ret;
 }
 
 // Get a Number
 char GetNum()
 {
-    while (FALSE == IsDigit(Look))
+    if (FALSE == IsDigit(Look))
     {
         Expected("Integer");
-        GetChar();
     }
 
-    return Look;
+    char ret = Look;
+    GetChar();
+    return ret;
 }
 
 // Output a String with Tab
@@ -128,6 +131,59 @@ void EmitLn(const char* s)
     printf("\n");
 }
 
+// Parse and Translate a Math Term
+void Term()
+{
+    char exp[MAX_SIZE_OF_EXP];
+    snprintf(exp, MAX_SIZE_OF_EXP, "mov edx, %c", GetNum());
+    EmitLn(exp);
+}
+
+// Recognize and Translate an Add
+void Add()
+{
+    Match('+');
+    Term();
+    EmitLn("add edx, ecx");
+}
+
+// Recognize and Translate a Subtract
+void Subtract()
+{
+    Match('-');
+    Term();
+    EmitLn("sub edx, ecx");
+    EmitLn("neg edx");
+}
+
+// Parse and Translate a Math Expression
+void Expression()
+{
+    Term();
+    while (Look == '+' || Look == '-')
+    {
+        EmitLn("mov ecx, edx");
+        switch (Look)
+        {
+        case '+':
+        {
+            Add();
+            break;
+        }
+        case '-':
+        {
+            Subtract();
+            break;
+        }
+        default:
+        {
+            Expected("Addop");
+            break;
+        }
+        }
+    }
+}
+
 // Initialize
 void Init()
 {
@@ -138,4 +194,5 @@ void Init()
 void main()
 {
     Init();
+    Expression();
 }
